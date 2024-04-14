@@ -1,10 +1,11 @@
-import express, { NextFunction, Router } from "express";
+import express, { NextFunction, Request, Response, Router } from "express";
 import { apiHealth, testData } from "@controllers/ServerController";
 import multer from "multer";
 import { storage } from "@helpers/Multer";
 import { storePhoto } from "@controllers/PhotoController";
 const route: Router = express.Router();
-
+const storage1 = multer.memoryStorage();
+const upload1 = multer({ storage: storage1 });
 const upload = multer({
   storage: storage,
   limits: {
@@ -14,7 +15,7 @@ const upload = multer({
 
 //check api health
 route.get("/health", apiHealth);
-route.post("/photos", upload.array("images", 6), storePhoto);
+route.post("/photos", upload1.array("images", 12), storePhoto);
 route.get("/test-data", testData);
 
 export { route };
