@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import createError from "http-errors";
+import { cachedDataVersionTag } from "v8";
 async function apiHealth(req: Request, res: Response, next: NextFunction) {
   try {
     res.status(200).json({
@@ -11,12 +12,13 @@ async function apiHealth(req: Request, res: Response, next: NextFunction) {
     next(error);
   }
 }
+
 async function testData(req: Request, res: Response, next: NextFunction) {
   try {
     const data = {
       id: 10,
       name: "জব'স পাসওয়ার্ড বই( All in one) ",
-      slug: "all-in-one",
+      slug: "all-in-on",
       featured: 1,
       flash_sale: 0,
       product_code: "POD-10",
@@ -47,6 +49,15 @@ async function testData(req: Request, res: Response, next: NextFunction) {
       deletedAt: null,
       reviews: [],
     };
+    //etag managed
+    const ifNoneMatch = req.get("If-None-Match");
+    console.log("version tag", cachedDataVersionTag());
+    console.log("current etag", res.get("ETag"));
+    console.log("client send", ifNoneMatch);
+    if (ifNoneMatch && ifNoneMatch === res.get("ETag")) {
+      return res.status(304).end();
+    }
+
     res.status(200).json({
       success: {
         message: "Data Fetch successfully.",
@@ -57,4 +68,5 @@ async function testData(req: Request, res: Response, next: NextFunction) {
     next(error);
   }
 }
+
 export { apiHealth, testData };
