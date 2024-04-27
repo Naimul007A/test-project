@@ -5,18 +5,24 @@ import sharp from "sharp";
 import path from "path";
 async function storePhoto(req: Request, res: Response, next: NextFunction) {
   try {
+    console.log(req.body);
     const imagePath: any = [];
     const imgPath: any = path.join(
       __dirname,
       "../../../public/uploads/products/"
     );
     const images = req.body.images || [];
+    console.log(images);
+    if (images.length === 0)
+      throw createHttpError.UnprocessableEntity("Images is required.");
     await images.map(async (data: any) => {
       const buffer = Buffer.from(data, "base64");
       const randomName = crypto.randomBytes(20).toString("hex");
       const imageName = `${randomName}.webp`;
       imagePath.push(`products/${imageName}`);
-      const resizedImageBuffer = await sharp(buffer).webp({ quality: 50 }).toBuffer();
+      const resizedImageBuffer = await sharp(buffer)
+        .webp({ quality: 50 })
+        .toBuffer();
       await sharp(resizedImageBuffer).toFile(`${imgPath}${imageName}`);
     });
     // if (files) {
