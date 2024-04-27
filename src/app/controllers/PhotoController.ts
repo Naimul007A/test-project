@@ -60,4 +60,52 @@ async function storePhoto(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export { storePhoto };
+async function photoStore(req: Request, res: Response, next: NextFunction) {
+  try {
+    const folder = req.body.folder || "products";
+    let imagePath: string | string[] = [];
+    const imgPath: string = path.join(
+      __dirname,
+      `../../../public/uploads/${folder}/`
+    );
+    // if file is single
+    if (req.file) {
+      const image = req.file || "";
+      const randomName = crypto.randomBytes(20).toString("hex");
+      const imageName = `${randomName}.webp`;
+      imagePath = `${folder}/${imageName}`;
+      if (image) {
+        const resizedImageBuffer = await sharp(image.buffer)
+          .webp({ quality: 50 })
+          .toBuffer();
+        await sharp(resizedImageBuffer).toFile(`${imgPath}${imageName}`);
+      }
+    } else {
+      const images = req.files || [];
+      if (images) {
+        //@ts-ignore
+        await images.map(async (image) => {
+          const randomName = crypto.randomBytes(20).toString("hex");
+          const imageName = `${randomName}.webp`;
+          //@ts-ignore
+          imagePath.push(`${folder}/${imageName}`);
+          const resizedImageBuffer = await sharp(image.buffer)
+            .webp({ quality: 50 })
+            .toBuffer();
+          await sharp(resizedImageBuffer).toFile(`${imgPath}${imageName}`);
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: {
+        message: "Image Store successfully.",
+        data: imagePath,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export { storePhoto, photoStore };
