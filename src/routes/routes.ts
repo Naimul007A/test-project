@@ -2,7 +2,12 @@ import express, { NextFunction, Request, Response, Router } from "express";
 import { apiHealth, testData } from "@controllers/ServerController";
 import multer from "multer";
 import { storage } from "@helpers/Multer";
-import { photoStore, storePhoto } from "@controllers/PhotoController";
+import {
+  deleteMultiPhoto,
+  photoDelete,
+  photoStore,
+  storePhoto,
+} from "@controllers/PhotoController";
 const route: Router = express.Router();
 const storage1 = multer.memoryStorage();
 const upload1 = multer({ storage: storage1 });
@@ -16,7 +21,8 @@ const upload = multer({
 //check api health
 route.get("/health", apiHealth);
 route.post("/photos", upload1.array("images", 12), photoStore);
-// route.delete("/photos/:name")
+route.post("/photos/delete-photo", photoDelete);
+route.post("/photos/delete", deleteMultiPhoto);
 route.get("/test-data", testData);
 
 export { route };

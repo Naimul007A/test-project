@@ -3,6 +3,8 @@ import createHttpError from "http-errors";
 import crypto from "crypto";
 import sharp from "sharp";
 import path from "path";
+import { DeletePhoto } from "@helpers/photoDelete";
+import { multiDeletePhoto } from "../helpers/MultiPhotoDelete";
 async function storePhoto(req: Request, res: Response, next: NextFunction) {
   try {
     console.log(req.body);
@@ -68,35 +70,31 @@ async function photoStore(req: Request, res: Response, next: NextFunction) {
       __dirname,
       `../../../public/uploads/${folder}/`
     );
-    // if file is single
-    if (req.file) {
-      const image = req.file || "";
-      const randomName = crypto.randomBytes(20).toString("hex");
-      const imageName = `${randomName}.webp`;
-      imagePath = `${folder}/${imageName}`;
-      if (image) {
+    const images = req.files || [];
+    if (images) {
+      //@ts-ignore
+      await images.map(async (image) => {
+        const randomName = crypto.randomBytes(20).toString("hex");
+        const imageName = `${randomName}.webp`;
+        //@ts-ignore
+        imagePath.push(`${folder}/${imageName}`);
         const resizedImageBuffer = await sharp(image.buffer)
           .webp({ quality: 50 })
           .toBuffer();
         await sharp(resizedImageBuffer).toFile(`${imgPath}${imageName}`);
-      }
+      });
     } else {
-      const images = req.files || [];
-      if (images) {
-        //@ts-ignore
-        await images.map(async (image) => {
-          const randomName = crypto.randomBytes(20).toString("hex");
-          const imageName = `${randomName}.webp`;
-          //@ts-ignore
-          imagePath.push(`${folder}/${imageName}`);
-          const resizedImageBuffer = await sharp(image.buffer)
-            .webp({ quality: 50 })
-            .toBuffer();
-          await sharp(resizedImageBuffer).toFile(`${imgPath}${imageName}`);
-        });
-      }
+      throw createHttpError.UnprocessableEntity();
     }
-
+    if (req.body.old_photo) {
+      await DeletePhoto(req.body.old_photo);
+    }
+    if (req.body.old) {
+      console.log("old", req.body.old);
+      await JSON.parse(req.body.old).map(async (photo: string) => {
+        await DeletePhoto(photo);
+      });
+    }
     res.status(200).json({
       success: {
         message: "Image Store successfully.",
@@ -108,4 +106,38 @@ async function photoStore(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export { storePhoto, photoStore };
+async function photoDelete(req: Request, res: Response, next: NextFunction) {
+  try {
+    const image = req.body.image;
+    await DeletePhoto(image);
+    res.status(200).json({
+      success: {
+        message: "Image Delete successfully.",
+        data: "",
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+async function deleteMultiPhoto(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const images = req.body.images;
+    console.log("body", req.body);
+    await multiDeletePhoto(images);
+    res.status(200).json({
+      success: {
+        message: "Delete successfully.",
+        data: "null",
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export { storePhoto, photoStore, photoDelete, deleteMultiPhoto };
