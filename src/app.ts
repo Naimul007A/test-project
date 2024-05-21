@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true,limit:"50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.get("/", (req: Request, res: Response) => {
   res.send("Application is Running.");
 });
