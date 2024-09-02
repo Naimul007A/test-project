@@ -81,7 +81,36 @@ async function photoStore(req: Request, res: Response, next: NextFunction) {
         const resizedImageBuffer = await sharp(image.buffer)
           .webp({ quality: 50 })
           .toBuffer();
-        await sharp(resizedImageBuffer).toFile(`${imgPath}${imageName}`);
+        const inputImage = sharp(resizedImageBuffer);
+        const metadata = await inputImage.metadata();
+        const width = metadata.width;
+        const height = metadata.height ?? 0;
+        const code = `POD-${req.body.code || 123}`;
+        const text = code;
+        // Set text position for bottom-left corner
+        const padding = 20; // Add padding from the edges
+        const textX = padding; // x-coordinate: padding from the left
+        const textY = height - padding; // y-coordinate: padding from the bottom
+
+        const svgImage = `
+        <svg width="${width}" height="${height}">
+            <style>
+                .title { fill: #ff3333; font-size: 50px; font-weight: bold;}
+            </style>
+            <text x="${textX}" y="${textY}" text-anchor="start" class="title">${text}</text>
+        </svg>
+        `;
+        const svgBuffer = Buffer.from(svgImage);
+        // Apply the text overlay and save the output
+        await inputImage
+          .composite([
+            {
+              input: svgBuffer,
+              top: 0,
+              left: 0,
+            },
+          ])
+          .toFile(`${imgPath}${imageName}`);
       });
     } else {
       throw createHttpError.UnprocessableEntity();
