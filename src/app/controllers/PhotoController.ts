@@ -85,7 +85,7 @@ async function photoStore(req: Request, res: Response, next: NextFunction) {
         const metadata = await inputImage.metadata();
         const width = metadata.width;
         const height = metadata.height ?? 0;
-        const code = `POD-${req.body.code || 123}`;
+        const code = `${req.body.code || "POD-error"}`;
         const text = code;
         // Set text position for bottom-left corner
         const padding = 20; // Add padding from the edges
