@@ -11,7 +11,7 @@ const app: Application = express();
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(express.static("public"));
+app.use("/photos", express.static("public/uploads"));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
