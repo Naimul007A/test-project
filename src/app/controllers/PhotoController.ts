@@ -150,9 +150,10 @@ async function photoStore(req: Request, res: Response, next: NextFunction) {
         const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
 
         // Create path with year/month structure
+        const basePath = `${year}/${month}/${folder}/`
         const uploadPath = path.join(
             __dirname,
-            `../../../public/uploads/${year}/${month}/${folder}/`
+            `../../../public/uploads/${basePath}`
         );
         // Ensure directory exists
         if (!fs.existsSync(uploadPath)) {
@@ -165,7 +166,7 @@ async function photoStore(req: Request, res: Response, next: NextFunction) {
                 const randomName = crypto.randomBytes(20).toString("hex");
                 const imageName = `${randomName}.${image.originalname.split(".").pop() ?? "jpg"}`;
                 //@ts-ignore
-                imagePath.push(`${uploadPath}${imageName}`);
+                imagePath.push(`${basePath}${imageName}`);
 
                 // Save the original image directly using fs instead of sharp
                 await writeFile(`${uploadPath}${imageName}`, image.buffer);

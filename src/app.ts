@@ -13,7 +13,7 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 // ^ change to this
-app.use("/photos", express.static(path.join(__dirname, "public/uploads")));
+app.use("/photos", express.static("public/uploads"));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
